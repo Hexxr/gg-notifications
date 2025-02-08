@@ -8,6 +8,7 @@ This guide will walk you through how to properly convert your FiveM server to us
 📌 Step 1: Install gg-notifications
 
 1️⃣ Download gg-notifications and place it in your resources/[qb] folder.
+(extract the folder then take out gg-inventory that's inside the main)
 2️⃣ Ensure the folder name is exactly gg-notifications.
 3️⃣ Add gg-notifications to your server.cfg to start it automatically:
 
@@ -40,19 +41,11 @@ end
 
 📂 Search for all instances of:
 
-TriggerClientEvent('QBCore:Notify', src, "Message", "success", 5000)
+TriggerClientEvent('QBCore:Notify')
 
 ✅ Replace with:
 
-TriggerClientEvent('QBCore:Client:Notify', src, "Message", "success", 5000)
-
-📂 For Client-Side Scripts, replace:
-
-TriggerEvent('QBCore:Notify', "Message", "success", 5000)
-
-✅ With:
-
-QBCore.Functions.Notify("Message", "success", 5000)
+TriggerClientEvent('QBCore:Client:Notify')
 
 🚀 Now, all old notification calls will be properly redirected.
 
@@ -62,14 +55,6 @@ QBCore.Functions.Notify("Message", "success", 5000)
 
 ensure qb-core
 ensure gg-notifications
-
-2️⃣ Trigger a test notification from the client (F8 console):
-
-TriggerEvent('QBCore:Notify', "Test notification!", "success", 5000)
-
-3️⃣ Trigger a test notification from the server console:
-
-TriggerClientEvent('QBCore:Client:Notify', <PLAYER_ID>, "Test from Server!", "info", 5000)
 
 4️⃣ Use the /testnotify command (if applicable) to verify notifications work correctly.
 
@@ -94,9 +79,6 @@ end)
 
 🚀 Now, stress notifications will appear in gg-notifications.
 
-📌 Final Checklist Before Going Live
-
-✅ gg-notifications is installed and running.✅ All QBCore:Notify calls have been updated to QBCore:Client:Notify.✅ QBCore.Functions.Notify has been updated in qb-core/client/functions.lua.✅ Stress notifications are working properly.✅ No duplicate notifications appear.✅ /testnotify command confirms notifications are working correctly.✅ All debug logs have been removed to prevent F8 console spam.
 
 🚀 Congratulations! Your FiveM server is now fully using gg-notifications. 🎉
 
