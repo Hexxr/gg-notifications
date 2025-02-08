@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QB Notifications</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .notifications-container {
+            position: fixed;
+            z-index: 9999;
+            pointer-events: none;
+            width: 24rem;
+            max-width: 90vw;
+        }
+        
+        .notification-item {
+            pointer-events: auto;
+            transform-origin: top right;
+        }
+
+        .top-right { top: 1rem; right: 1rem; }
+        .top-left { top: 1rem; left: 1rem; }
+        .bottom-right { bottom: 1rem; right: 1rem; }
+        .bottom-left { bottom: 1rem; left: 1rem; }
+
+        .slide-enter-active,
+        .slide-leave-active {
+            transition: all 0.3s ease;
+        }
+
+        .slide-enter-from {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+
+        .slide-leave-to {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+
+        [v-cloak] {
+            display: none;
+        }
+
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background-color: currentColor;
+            opacity: 0.4;
+            transition: width linear;
+        }
+    </style>
+</head>
+<body class="bg-transparent">
+    <div id="app" v-cloak>
+        <div :class="['notifications-container', position]">
+            <TransitionGroup 
+                name="slide"
+                tag="div"
+                class="space-y-2"
+            >
+                <div
+                    v-for="notif in notifications"
+                    :key="notif.id"
+                    class="notification-item bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 relative overflow-hidden"
+                    :class="[
+                        notif.type === 'success' ? 'border-l-4 border-green-500' :
+                        notif.type === 'error' ? 'border-l-4 border-red-500' :
+                        notif.type === 'warning' ? 'border-l-4 border-yellow-500' :
+                        'border-l-4 border-blue-500'
+                    ]"
+                >
+                    <div class="flex items-start">
+                        <!-- Icon -->
+                        <div class="flex-shrink-0" :class="'text-' + getTypeColor(notif.type)">
+                            <svg v-if="notif.type === 'success'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <svg v-else-if="notif.type === 'error'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                            <svg v-else-if="notif.type === 'info'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <svg v-else class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                        </div>
+
+                        <!-- Content -->
+                        <div class="ml-3 w-0 flex-1">
+                            <p class="text-sm font-medium text-gray-900 dark:text-white" v-if="notif.title">
+                                {{ notif.title }}
+                            </p>
+                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                {{ notif.message }}
+                            </p>
+                        </div>
+
+                        <!-- Close button -->
+                        <div class="ml-4 flex-shrink-0 flex">
+                            <button 
+                                @click="removeNotification(notif.id)"
+                                class="rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            >
+                                <span class="sr-only">Close</span>
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Progress bar -->
+                    <div 
+                        v-if="notif.duration > 0"
+                        class="progress-bar"
+                        :class="'bg-' + getTypeColor(notif.type)"
+                        :style="{ width: getProgressWidth(notif) + '%' }"
+                    ></div>
+                </div>
+            </TransitionGroup>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.2.47/vue.global.prod.js"></script>
+    <script>
+        const { createApp, ref, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                const notifications = ref([]);
+                const position = ref('top-right');
+                let nextId = 0;
+
+                const getTypeColor = (type) => {
+                    const colors = {
+                        success: 'green-500',
+                        error: 'red-500',
+                        warning: 'yellow-500',
+                        info: 'blue-500'
+                    };
+                    return colors[type] || colors.info;
+                };
+
+                const getProgressWidth = (notification) => {
+                    const elapsed = Date.now() - notification.startTime;
+                    const remaining = Math.max(0, notification.duration - elapsed);
+                    return (remaining / notification.duration) * 100;
+                };
+
+                const addNotification = (data) => {
+                    const notification = {
+                        id: nextId++,
+                        type: data.type || 'info',
+                        title: data.title || '',
+                        message: data.message || '',
+                        duration: data.duration || 3000,
+                        startTime: Date.now()
+                    };
+
+                    notifications.value.push(notification);
+
+                    while (notifications.value.length > 5) {
+                        notifications.value.shift();
+                    }
+
+                    if (data.sound !== false) {
+                        let audio = new Audio('notification.ogg');
+                        audio.volume = 0.7;
+                        audio.play();
+                    }
+
+                    if (notification.duration > 0) {
+                        setTimeout(() => {
+                            removeNotification(notification.id);
+                        }, notification.duration);
+                    }
+                };
+
+                const removeNotification = (id) => {
+                    const index = notifications.value.findIndex(n => n.id === id);
+                    if (index > -1) {
+                        notifications.value.splice(index, 1);
+                    }
+                };
+
+                onMounted(() => {
+                    window.addEventListener('message', (event) => {
+                        const data = event.data;
+                        if (data.action === 'notification') {
+                            position.value = data.position || 'top-right';
+                            addNotification(data);
+                        }
+                    });
+                });
+
+                return {
+                    notifications,
+                    position,
+                    removeNotification,
+                    getTypeColor,
+                    getProgressWidth
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
