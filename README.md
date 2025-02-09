@@ -70,13 +70,6 @@ TriggerClientEvent('QBCore:Notify', src, Lang:t('notify.stress_gain'), 'error', 
 
 TriggerClientEvent('QBCore:Client:Notify', src, Lang:t('notify.stress_gain'), 'error', 1500)
 
-📂 Open qb-hud/client.lua and ensure this event exists:
-
-RegisterNetEvent('QBCore:Client:Notify')
-AddEventHandler('QBCore:Client:Notify', function(message, type, duration)
-    QBCore.Functions.Notify(message, type, duration)
-end)
-
 🚀 Now, stress notifications will appear in gg-notifications.
 
 
