@@ -25,15 +25,7 @@ restart gg-notifications
 1️⃣ Update QBCore Functions
 
 📂 Open qb-core/client/functions.lua and find the existing QBCore.Functions.Notify function. Replace it with this:
-
-function QBCore.Functions.Notify(text, texttype, length, icon)
-    TriggerEvent('gg-notifications:client:SendAlert', {
-        type = texttype or 'info',
-        title = "Notification",
-        message = text,
-        duration = length or 5000
-    })
-end
+Theres a readme file in the folder that shows what to put!
 
 ✅ Now, all scripts that call QBCore.Functions.Notify() will use gg-notifications.
 
